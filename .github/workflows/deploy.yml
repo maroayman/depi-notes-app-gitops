@@ -25,11 +25,6 @@ jobs:
         with:
           python-version: '3.11'
       
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-        with:
-          terraform_version: 1.5.0
-      
       - name: Install Ansible and dependencies
         run: |
           pip install ansible kubernetes boto3
