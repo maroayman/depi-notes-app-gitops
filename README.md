@@ -15,6 +15,8 @@
 
 A 3-tier notes application with full CI/CD pipeline using GitHub Actions, Terraform, Ansible, Helm, and ArgoCD for GitOps deployment on AWS EKS.
 
+📋 **[View Detailed Architecture →](ARCHITECTURE.md)**
+
 ## Architecture
 
 - **Frontend/Proxy**: Nginx (reverse proxy)
