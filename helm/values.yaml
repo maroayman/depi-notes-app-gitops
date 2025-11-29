@@ -15,7 +15,7 @@ web:
   image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
   tag: effc534beb3899b5ded7df78bd10ef9fff4c2014
   port: 5000
-  replicas: 2
+  replicas: 1
   env:
     FLASK_ENV: "production"
     DB_HOST: "notes-mysql"
