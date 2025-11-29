@@ -96,20 +96,7 @@ Helm Changes → ArgoCD Auto-Sync → Kubernetes Deployment
 gh workflow run infrastructure.yml
 ```
 
-### 2. Install ArgoCD (One-time setup)
-```bash
-# Update kubeconfig
-aws eks update-kubeconfig --region us-east-1 --name notes-app
-
-# Install ArgoCD
-kubectl create namespace argocd
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
-
-# Deploy ArgoCD application
-kubectl apply -f argocd/notes-app.yaml
-```
-
-### 3. Deploy Application
+### 2. Deploy Application
 ```bash
 # Push code changes to trigger automatic deployment
 git add .
@@ -117,13 +104,37 @@ git commit -m "Deploy notes app"
 git push origin main
 ```
 
+### 3. Run Database Migrations
+```bash
+# Update kubeconfig
+aws eks update-kubeconfig --region us-east-1 --name notes
+
+# Run migrations inside web pod
+kubectl exec deployment/notes-web -n notes -- flask db upgrade
+```
+
 ### 4. Access Application
 ```bash
 # Port forward to access locally
 kubectl port-forward svc/notes-nginx -n notes 3000:80
+kubectl port-forward svc/argocd-server -n argocd 8080:443
 
-# Access at: http://localhost:3000
+# Get ArgoCD admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 ```
+
+**Access URLs:**
+- **Notes App**: http://localhost:3000
+- **ArgoCD UI**: https://localhost:8080 (admin/password-from-above)
+
+## API Endpoints
+
+- `GET /notes` - List all notes (with pagination/search)
+- `POST /notes` - Create new note
+- `PUT /notes/<id>` - Update existing note
+- `DELETE /notes/<id>` - Delete note
+- `GET /health` - Health check endpoint
+- `GET /metrics` - Prometheus metrics
 
 ## Configuration
 
@@ -138,10 +149,79 @@ All application configuration is managed through `helm/values.yaml`:
 ## Monitoring
 
 The application includes:
-- Prometheus metrics endpoints on Flask app
-- Health checks for all services
+- Prometheus metrics endpoints on Flask app (`/metrics`)
+- Health checks for all services (`/health`)
 - Container resource monitoring
-- Kubernetes cluster metrics via Karpenter
+- Kubernetes cluster metrics
+
+## Production Deployment
+
+For production deployment, change the service type to LoadBalancer:
+
+```yaml
+# In helm/templates/nginx-service.yaml
+spec:
+  type: LoadBalancer  # Change from NodePort
+  ports:
+    - port: 80
+      targetPort: 80
+```
+
+## Common Challenges & Solutions
+
+### 1. **EBS CSI Driver Missing**
+**Problem**: MySQL pods stuck in Pending state with volume binding errors
+**Solution**: Install EBS CSI driver addon
+```bash
+aws eks create-addon --cluster-name notes --addon-name aws-ebs-csi-driver
+# Add AmazonEBSCSIDriverPolicy to node group IAM role
+```
+
+### 2. **Pod Capacity Issues**
+**Problem**: Pods can't be scheduled due to node capacity
+**Solution**: Use larger instance types or add more nodes
+```bash
+# In terraform/main.tf
+instance_types = ["t3.large"]  # Instead of t3.medium
+```
+
+### 3. **Database Table Missing**
+**Problem**: App returns 500 errors when storing notes
+**Solution**: Run database migrations
+```bash
+kubectl exec deployment/notes-web -n notes -- flask db upgrade
+```
+
+### 4. **ArgoCD Pods Failing**
+**Problem**: ArgoCD pods stuck in Pending due to node taints
+**Solution**: Remove taints from nodes
+```bash
+kubectl taint nodes --all system=true:NoSchedule-
+```
+
+### 5. **Terraform Resource Conflicts**
+**Problem**: Infrastructure pipeline fails with "already exists" errors
+**Solution**: Import existing resources or use different names
+```bash
+# Change cluster name in terraform/variables.tf
+variable "cluster_name" {
+  default = "your-unique-name"
+}
+```
+
+## Customization for Your Environment
+
+### Required Changes:
+1. **Repository URL**: Update in `argocd/notes-app.yaml` and `ansible/deploy.yml`
+2. **AWS Region**: Change in all workflow files and terraform variables
+3. **Cluster Name**: Update in `terraform/variables.tf`
+4. **ECR Repository**: Will be created automatically with your AWS account ID
+
+### Optional Changes:
+1. **Instance Types**: Modify in `terraform/main.tf`
+2. **Resource Limits**: Adjust in `helm/values.yaml`
+3. **Database Settings**: Update MySQL configuration in `helm/values.yaml`
+4. **Scaling**: Modify replica counts and autoscaling settings
 
 ## Development Workflow
 
@@ -149,11 +229,10 @@ The application includes:
 2. **Push to main branch** - triggers automatic:
    - Docker image build and push to ECR
    - Helm values update with new image tag
-   - Ansible deployment via GitHub Actions
    - ArgoCD sync to Kubernetes cluster
 
 3. **Infrastructure changes** in `terraform/` trigger infrastructure updates
-4. **Kubernetes changes** in `helm/` trigger deployment updates
+4. **Kubernetes changes** in `helm/` trigger ArgoCD sync
 
 ## Troubleshooting
 
@@ -172,4 +251,12 @@ kubectl get pods -n notes
 
 # View application logs
 kubectl logs -f deployment/notes-web -n notes
+
+# Check MySQL logs
+kubectl logs -f statefulset/notes-mysql -n notes
+
+# Test API endpoints
+curl http://localhost:3000/health
+curl http://localhost:3000/metrics
+curl http://localhost:3000/notes
 ```
