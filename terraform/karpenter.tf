@@ -28,6 +28,9 @@ resource "helm_release" "karpenter" {
   chart      = "karpenter"
   version    = "v0.32.0"
   
+  timeout = 600
+  wait    = true
+  
   values = [
     <<-EOT
     settings:
@@ -37,6 +40,7 @@ resource "helm_release" "karpenter" {
     serviceAccount:
       annotations:
         eks.amazonaws.com/role-arn: ${module.karpenter.irsa_arn}
+    replicas: 1
     EOT
   ]
 }
