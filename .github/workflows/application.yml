@@ -7,6 +7,8 @@ on:
     branches: [main]
   workflow_dispatch:
 
+# Note: Repository Settings → Actions → General must have:
+# - "Workflow permissions" set to "Read and write permissions"
 permissions:
   contents: write
 
@@ -22,6 +24,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 0
+          persist-credentials: true
       
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
@@ -59,8 +62,8 @@ jobs:
       
       - name: Commit updated values
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add helm/values.yaml
-          git commit -m "Update image tag to ${{ github.sha }}" || exit 0
-          git push
+          git diff --staged --quiet || git commit -m "Update image tag to ${{ github.sha }}"
+          git push origin HEAD:main
