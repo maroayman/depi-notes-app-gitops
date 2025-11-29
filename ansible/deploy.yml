@@ -1,123 +1,12 @@
 ---
-- name: Deploy Notes App to AWS EKS with Karpenter
+- name: Deploy Notes App to AWS EKS
   hosts: localhost
   connection: local
   gather_facts: false
   
-  vars:
-    aws_region: us-east-1
-    cluster_name: notes
-    
-  tasks:
-    - name: Apply Terraform infrastructure
-      terraform:
-        project_path: ../terraform
-        state: present
-        variables:
-          aws_region: "{{ aws_region }}"
-          cluster_name: "{{ cluster_name }}"
-      register: terraform_output
-      
-    - name: Update Helm values with actual ECR URL
-      replace:
-        path: ../helm/values.yaml
-        regexp: 'ACCOUNT_ID\.dkr\.ecr\.us-east-1\.amazonaws\.com/notes-web'
-        replace: "{{ terraform_output.outputs.ecr_web_repository_url.value }}"
-        
-    - name: Get ECR login token
-      shell: |
-        aws ecr get-login-password --region {{ aws_region }} | \
-        docker login --username AWS --password-stdin {{ terraform_output.outputs.ecr_web_repository_url.value | regex_replace('/.*') }}
-      
-    - name: Tag and push web application image to ECR
-      shell: |
-        docker tag notes_web:latest {{ terraform_output.outputs.ecr_web_repository_url.value }}:latest
-        docker push {{ terraform_output.outputs.ecr_web_repository_url.value }}:latest
-        
+  tasks:        
     - name: Update kubeconfig
-      shell: |
-        aws eks update-kubeconfig --region {{ aws_region }} --name {{ cluster_name }}
-        
-    - name: Install ArgoCD
-      kubernetes.core.helm:
-        name: argocd
-        chart_ref: argo/argo-cd
-        release_namespace: argocd
-        create_namespace: true
-        values:
-          server:
-            service:
-              type: LoadBalancer
-              
-    - name: Wait for ArgoCD to be ready
-      kubernetes.core.k8s_info:
-        api_version: apps/v1
-        kind: Deployment
-        name: argocd-server
-        namespace: argocd
-        wait: true
-        wait_condition:
-          type: Available
-          status: "True"
-        wait_timeout: 300
-        
-    - name: Commit updated Helm values to Git
-      shell: |
-        cd ..
-        git add helm/values.yaml
-        git commit -m "Update ECR URL after Terraform deployment" || true
-        git push origin main || true
-        
-    - name: Deploy Karpenter NodePool
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: karpenter.sh/v1beta1
-          kind: NodePool
-          metadata:
-            name: notes-nodepool
-          spec:
-            template:
-              metadata:
-                labels:
-                  app: notes
-              spec:
-                requirements:
-                  - key: kubernetes.io/arch
-                    operator: In
-                    values: ["amd64"]
-                  - key: node.kubernetes.io/instance-type
-                    operator: In
-                    values: ["t3.medium", "t3.large"]
-                  - key: karpenter.sh/capacity-type
-                    operator: In
-                    values: ["spot", "on-demand"]
-                nodeClassRef:
-                  name: default
-            disruption:
-              consolidationPolicy: WhenUnderutilized
-              consolidateAfter: 30s
-              expireAfter: 30m
-        
-    - name: Deploy Karpenter NodeClass
-      kubernetes.core.k8s:
-        state: present
-        definition:
-          apiVersion: karpenter.k8s.aws/v1beta1
-          kind: EC2NodeClass
-          metadata:
-            name: default
-          spec:
-            amiFamily: AL2
-            subnetSelectorTerms:
-              - tags:
-                  karpenter.sh/discovery: "{{ cluster_name }}"
-            securityGroupSelectorTerms:
-              - tags:
-                  karpenter.sh/discovery: "{{ cluster_name }}"
-            userData: |
-              #!/bin/bash
-              /etc/eks/bootstrap.sh {{ cluster_name }}
+      shell: aws eks update-kubeconfig --region us-east-1 --name notes
         
     - name: Apply ArgoCD application
       kubernetes.core.k8s:
@@ -134,9 +23,6 @@
               repoURL: "https://github.com/maroayman/depi-notes-app-gitops.git"
               targetRevision: HEAD
               path: helm
-              helm:
-                valueFiles:
-                  - values.yaml
             destination:
               server: https://kubernetes.default.svc
               namespace: notes
