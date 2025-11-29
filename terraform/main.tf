@@ -119,7 +119,6 @@ module "eks" {
   
   tags = {
     Environment = "production"
-    "karpenter.sh/discovery" = var.cluster_name
   }
 }
 
