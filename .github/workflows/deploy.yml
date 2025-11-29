@@ -31,7 +31,7 @@ jobs:
           ansible-galaxy install -r ansible/requirements.yml
       
       - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region us-east-1 --name notes-app
+        run: aws eks update-kubeconfig --region us-east-1 --name notes
       
       - name: Run Ansible deployment
         run: ansible-playbook ansible/deploy.yml -v
