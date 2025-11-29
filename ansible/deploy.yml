@@ -7,6 +7,14 @@
   tasks:        
     - name: Update kubeconfig
       shell: aws eks update-kubeconfig --region us-east-1 --name notes
+
+    - name: Install ArgoCD
+      shell: |
+        kubectl create namespace argocd --dry-run=client -o yaml | kubectl apply -f -
+        kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+
+    - name: Wait for ArgoCD to be ready
+      shell: kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
         
     - name: Apply ArgoCD application
       kubernetes.core.k8s:
