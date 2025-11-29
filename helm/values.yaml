@@ -1,0 +1,31 @@
+namespace: notes
+
+# MySQL settings
+mysql:
+  rootPassword: rootpassword
+  database: notesdb
+  user: notesuser
+  password: notespass
+  image: mysql:8.0  # Public Docker Hub image
+  port: 3306
+  storage: 1Gi
+
+# Web app settings
+web:
+  image: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/notes-web  # Will be updated by Terraform
+  tag: latest
+  port: 5000
+  replicas: 2
+  env:
+    FLASK_ENV: "production"
+    DB_HOST: "notes-mysql"
+    DB_USER: "notesuser"
+    DB_PASSWORD: "notespass"
+    DB_NAME: "notesdb"
+    DB_PORT: "3306"
+
+# Nginx settings
+nginx:
+  image: nginx:1.27-alpine  # Public Docker Hub image
+  port: 80
+  replicas: 1

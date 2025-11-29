@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-mysql
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+    - port: {{ .Values.mysql.port }}
+  clusterIP: None
+  selector:
+    app: notes-mysql

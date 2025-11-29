@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-web
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.web.replicas }}
+  selector:
+    matchLabels:
+      app: notes-web
+  template:
+    metadata:
+      labels:
+        app: notes-web
+    spec:
+      containers:
+        - name: notes-web
+          image: "{{ .Values.web.image }}:{{ .Values.web.tag }}"
+          ports:
+            - containerPort: {{ .Values.web.port }}
+          env:
+            {{- range $key, $value := .Values.web.env }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+            {{- end }}

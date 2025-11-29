@@ -1,0 +1,37 @@
+name: Deploy
+
+on:
+  push:
+    paths:
+      - 'helm/values.yaml'
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      
+      - name: Install Ansible and dependencies
+        run: |
+          pip install ansible kubernetes boto3
+          ansible-galaxy install -r ansible/requirements.yml
+      
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --region us-east-1 --name notes-app
+      
+      - name: Run Ansible deployment
+        run: ansible-playbook ansible/deploy.yml -v

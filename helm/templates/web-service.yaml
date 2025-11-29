@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-web
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: notes-web
+  ports:
+    - port: {{ .Values.web.port }}
+      targetPort: {{ .Values.web.port }}
+  type: ClusterIP

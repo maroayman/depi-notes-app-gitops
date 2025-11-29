@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Flask Notes</title>
+  <!-- Tailwind (CDN for simplicity) -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-gray-900">
+  <div class="max-w-3xl mx-auto p-6">
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold">Flask Notes</h1>
+      <p class="text-sm text-gray-600">Nginx → Flask → MySQL • AJAX • Pagination • Search • Metrics</p>
+    </header>
+    {% block content %}{% endblock %}
+    <footer class="mt-12 text-xs text-gray-500">
+      <a class="underline" href="/metrics" target="_blank">Metrics</a> •
+      <a class="underline" href="/healthz" target="_blank">Health</a>
+    </footer>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
