@@ -114,14 +114,6 @@ module "eks" {
       labels = {
         role = "system"
       }
-      
-      taints = {
-        system = {
-          key    = "system"
-          value  = "true"
-          effect = "NO_SCHEDULE"
-        }
-      }
     }
   }
   
