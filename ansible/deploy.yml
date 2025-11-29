@@ -5,8 +5,8 @@
   gather_facts: false
   
   vars:
-    aws_region: "{{ aws_region | default('us-east-1') }}"
-    cluster_name: "{{ cluster_name | default('notes') }}"
+    aws_region: us-east-1
+    cluster_name: notes
     
   tasks:
     - name: Apply Terraform infrastructure
