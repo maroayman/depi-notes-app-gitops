@@ -6,14 +6,14 @@ mysql:
   database: notesdb
   user: notesuser
   password: notespass
-  image: mysql:8.0  # Public Docker Hub image
+  image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
   port: 3306
   storage: 1Gi
 
 # Web app settings
 web:
-  image: ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com/notes-web  # Will be updated by Terraform
-  tag: latest
+  image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
+  tag: effc534beb3899b5ded7df78bd10ef9fff4c2014
   port: 5000
   replicas: 2
   env:
@@ -26,6 +26,6 @@ web:
 
 # Nginx settings
 nginx:
-  image: nginx:1.27-alpine  # Public Docker Hub image
+  image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
   port: 80
   replicas: 1
