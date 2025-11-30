@@ -7,6 +7,6 @@ spec:
   selector:
     app: notes-nginx
   ports:
-    - port: {{ .Values.nginx.port }}
+    - port: 80
       targetPort: {{ .Values.nginx.port }}
-  type: NodePort
+  type: LoadBalancer
