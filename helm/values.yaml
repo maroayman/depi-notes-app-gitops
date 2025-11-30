@@ -26,6 +26,6 @@ web:
 
 # Nginx settings
 nginx:
-  image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
+  image: nginx:alpine
   port: 80
   replicas: 1
