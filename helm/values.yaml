@@ -6,7 +6,7 @@ mysql:
   database: notesdb
   user: notesuser
   password: notespass
-  image: 209479261816.dkr.ecr.us-east-1.amazonaws.com/notes-web
+  image: mysql:8.0
   port: 3306
   storage: 1Gi
 
