@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="bg-white rounded-xl shadow p-4 mb-6">
+  <form id="add-form" class="flex gap-2">
+    <input id="content" name="content" type="text" placeholder="Write a note..." class="flex-1 border rounded-lg px-3 py-2" />
+    <button class="px-4 py-2 rounded-lg bg-blue-600 text-white">Add</button>
+  </form>
+  <p id="error" class="text-red-600 text-sm mt-2 hidden"></p>
+</div>
+
+<div class="bg-white rounded-xl shadow p-4 mb-4">
+  <div class="flex items-center gap-2">
+    <input id="search" type="text" placeholder="Search notes..." class="flex-1 border rounded-lg px-3 py-2" />
+    <select id="limit" class="border rounded-lg px-2 py-2">
+      <option value="5">5</option>
+      <option value="10" selected>10</option>
+      <option value="20">20</option>
+    </select>
+  </div>
+</div>
+
+<ul id="notes" class="space-y-3"></ul>
+
+<div class="mt-4 flex justify-between items-center">
+  <button id="prev" class="px-3 py-2 rounded bg-gray-200 disabled:opacity-50">Previous</button>
+  <span id="pageinfo" class="text-sm text-gray-600"></span>
+  <button id="next" class="px-3 py-2 rounded bg-gray-200 disabled:opacity-50">Next</button>
+</div>
+{% endblock %}

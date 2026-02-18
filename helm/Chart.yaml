@@ -1,0 +1,6 @@
+apiVersion: v2
+name: notes-app
+description: Helm chart for Flask Notes App with MySQL and Nginx
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

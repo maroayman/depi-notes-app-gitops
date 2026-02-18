@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: notes-nginx
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: notes-nginx
+  type: {{ .Values.nginx.serviceType | default "NodePort" }}
+  ports:
+    - name: http
+      port: 80
+      targetPort: {{ .Values.nginx.port }}
+

@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: notes-mysql
+  namespace: notes
+spec:
+  serviceName: notes-mysql
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notes-mysql
+  template:
+    metadata:
+      labels:
+        app: notes-mysql
+    spec:
+      containers:
+      - name: mysql
+        image: 10.10.30.70:30500/mysql:8.0
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: notes-mysql
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+  volumeClaimTemplates:
+  - metadata:
+      name: mysql-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 1Gi
+      storageClassName: nfs-csi

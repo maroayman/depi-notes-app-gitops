@@ -1,0 +1,12 @@
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: GitRepository
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 1m
+  url: http://10.10.30.70:30080/maroayman/depi-notes-app-gitops.git
+  ref:
+    branch: main
+  secretRef:
+    name: flux-system

@@ -1,0 +1,12 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: notes
+resources:
+  - deployment-nginx.yaml
+  - deployment-web.yaml
+  - statefulset-mysql.yaml
+  - service-nginx.yaml
+  - service-web.yaml
+  - service-mysql.yaml
+  - configmap-nginx.yaml
+  - secret-mysql.yaml

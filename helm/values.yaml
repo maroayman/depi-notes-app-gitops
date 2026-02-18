@@ -1,0 +1,35 @@
+namespace: notes
+
+mysql:
+  rootPassword: rootpassword
+  database: notesdb
+  user: notesuser
+  password: notespass
+  image: 10.10.30.74:30500/mysql
+  tag: "8.0"
+  port: 3306
+  storage: 1Gi
+  storageClass: nfs-csi
+  pvcName: notes-mysql-pvc
+
+web:
+  image: 10.10.30.74:30500/notes-web
+  tag: d525a18cb76f3193c5ba44dc9bb55df513ee7a78
+  port: 5000
+  replicas: 1
+  env:
+    FLASK_ENV: "production"
+    DB_HOST: "notes-mysql"
+    DB_USER: "notesuser"
+    DB_PASSWORD: "notespass"
+    DB_NAME: "notesdb"
+    DB_PORT: "3306"
+  migrate:
+    enabled: true
+
+nginx:
+  image: 10.10.30.74:30500/nginx
+  tag: "1.26.2-alpine"
+  port: 80
+  replicas: 1
+  serviceType: NodePort

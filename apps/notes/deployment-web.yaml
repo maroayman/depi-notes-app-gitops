@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-web
+  namespace: notes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notes-web
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: notes-web
+    spec:
+      initContainers:
+      - name: db-migrate
+        image: 10.10.30.70:30500/notes-web:d525a18cb76f3193c5ba44dc9bb55df513ee7a78
+        command: ["sh", "-c"]
+        args:
+        - flask db upgrade
+        env:
+        - name: DB_HOST
+          value: notes-mysql
+        - name: DB_NAME
+          value: notesdb
+        - name: DB_PASSWORD
+          value: notespass
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: notesuser
+        - name: FLASK_ENV
+          value: production
+      containers:
+      - name: notes-web
+        image: 10.10.30.70:30500/notes-web:d525a18cb76f3193c5ba44dc9bb55df513ee7a78
+        ports:
+        - containerPort: 5000
+        env:
+        - name: DB_HOST
+          value: notes-mysql
+        - name: DB_NAME
+          value: notesdb
+        - name: DB_PASSWORD
+          value: notespass
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_USER
+          value: notesuser
+        - name: FLASK_ENV
+          value: production
